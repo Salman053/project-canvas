@@ -132,17 +132,19 @@ html, body {
 .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .dashboard-card {
     background: var(--bg-card); border: 1px solid var(--border-color);
-    border-radius: 12px; padding: 22px; min-height: 240px;
+    border-radius: 12px; padding: 20px 22px; min-height: 200px;
     box-shadow: var(--shadow-sm); transition: box-shadow 0.2s, border-color 0.3s, background 0.3s;
+    display: flex; flex-direction: column;
 }
 .dashboard-card:hover { box-shadow: var(--shadow-md); }
 .dashboard-card.full-width { grid-column: 1 / -1; }
 .dashboard-card h2 {
-    font-size: 12px; font-weight: 600; color: var(--text-muted);
-    margin-bottom: 18px; letter-spacing: 0.4px; text-transform: uppercase;
+    font-size: 12px; font-weight: 700; color: var(--text-muted);
+    margin-bottom: 12px; letter-spacing: 0.4px; text-transform: uppercase;
+    flex-shrink: 0;
 }
-.card-body { min-height: 120px; position: relative; }
-.card-body canvas { max-height: 260px; max-width: 100%; }
+.card-body { flex: 1; position: relative; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.card-body canvas { max-height: 280px; max-width: 100%; width: 100%; }
 
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .metric-card {

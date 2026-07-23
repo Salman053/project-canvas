@@ -35,17 +35,13 @@
         var saved = localStorage.getItem('canvas-theme') || 'dark';
         document.documentElement.setAttribute('data-theme', saved);
         btn.innerHTML = saved === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
-
         btn.addEventListener('click', function () {
             var current = document.documentElement.getAttribute('data-theme') || 'dark';
             var next = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('canvas-theme', next);
             btn.innerHTML = next === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
-            if (charts.health) { charts.health.resize(); charts.health.update(); }
-            if (charts.types) { charts.types.resize(); charts.types.update(); }
-            if (charts.complexity) { charts.complexity.resize(); charts.complexity.update(); }
-            if (charts.healthType) { charts.healthType.resize(); charts.healthType.update(); }
+            Object.values(charts).forEach(function (c) { if (c && c.resize) { c.resize(); c.update(); } });
         });
     }
 
@@ -58,10 +54,7 @@
                 renderAll();
                 showLoading(false);
             })
-            .catch(function (err) {
-                console.error('Failed to load analytics:', err);
-                showLoading(false);
-            });
+            .catch(function () { showLoading(false); });
     }
 
     function renderAll() {
@@ -71,10 +64,13 @@
         renderTypesChart();
         renderComplexityChart();
         renderHealthTypeChart();
+        renderDependencyChart();
+        renderTestChart();
         renderQualityMetrics();
         renderGodClasses();
         renderDependencies();
         renderCoverage();
+        renderQueryAnalysis();
         renderSuggestions();
         renderSprintReview();
     }
@@ -85,7 +81,7 @@
             el = document.createElement('div');
             el.id = 'loading-overlay';
             el.innerHTML = '<div class="loader"><div class="loader-ring"></div><div class="loader-text">Loading analytics...</div></div>';
-            el.style.cssText = 'position:fixed;inset:0;background:#0a0a1a;display:flex;align-items:center;justify-content:center;z-index:9999;';
+            el.style.cssText = 'position:fixed;inset:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:9999;';
             document.body.appendChild(el);
         }
         el.style.display = show ? 'flex' : 'none';
@@ -100,7 +96,8 @@
                 document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
                 var panel = document.getElementById('tab-' + tab);
                 if (panel) panel.classList.add('active');
-                if (tab === 'architecture') setTimeout(renderArchitectureGraph, 100);
+                if (tab === 'architecture') setTimeout(renderArchitectureGraph, 150);
+                if (tab === 'queries') setTimeout(renderQueryCharts, 150);
             });
         });
     }
@@ -108,14 +105,16 @@
     function renderSummaryCards() {
         var s = analyticsData.summary;
         var cards = [
-            { label: 'Total Components', value: s.totalNodes, color: '#00ccff', icon: 'd' },
-            { label: 'Relationships', value: s.totalEdges, color: '#aa66ff', icon: '#' },
-            { label: 'Avg Health', value: (s.averageHealth * 100).toFixed(0) + '%', color: s.averageHealth >= 0.8 ? '#00ff88' : s.averageHealth >= 0.5 ? '#ffaa00' : '#ff3355', icon: 'H' },
-            { label: 'Healthy/Mod/Unhealthy', value: s.healthyCount + ' / ' + s.moderateCount + ' / ' + s.unhealthyCount, color: '#888', icon: 'B' },
-            { label: 'Routes', value: s.routeCount, color: '#8888ff', icon: 'R' },
-            { label: 'Avg Dependencies', value: s.averageDependencies.toFixed(2), color: '#ff8800', icon: 'D' },
-            { label: 'God Classes', value: s.godClassCount, color: s.godClassCount > 0 ? '#ff3355' : '#00ff88', icon: 'G' },
-            { label: 'Suggestions', value: s.suggestionCount, color: s.suggestionCount > 0 ? '#ffaa00' : '#00ff88', icon: 'S' },
+            { label: 'Total Components', value: s.totalNodes, color: '#00ccff', icon: '\u25C6' },
+            { label: 'Relationships', value: s.totalEdges, color: '#aa66ff', icon: '\u2261' },
+            { label: 'Avg Health', value: (s.averageHealth * 100).toFixed(0) + '%', color: s.averageHealth >= 0.8 ? '#00ff88' : s.averageHealth >= 0.5 ? '#ffaa00' : '#ff3355', icon: '\u2665' },
+            { label: 'Healthy / Moderate / Unhealthy', value: s.healthyCount + ' / ' + s.moderateCount + ' / ' + s.unhealthyCount, color: '#888', icon: '\u2630' },
+            { label: 'Routes Defined', value: s.routeCount, color: '#8888ff', icon: '\u2192' },
+            { label: 'Avg Dependencies', value: s.averageDependencies.toFixed(2), color: '#ff8800', icon: '\u2191' },
+            { label: 'God Classes', value: s.godClassCount, color: s.godClassCount > 0 ? '#ff3355' : '#00ff88', icon: '\u26A0' },
+            { label: 'Total Suggestions', value: s.suggestionCount, color: s.suggestionCount > 0 ? '#ffaa00' : '#00ff88', icon: '\u270E' },
+            { label: 'Total Tests', value: s.totalTests, color: '#66ddaa', icon: '\u2713' },
+            { label: 'Coverage', value: (analyticsData.coverage.overall || 0) + '%', color: (analyticsData.coverage.overall || 0) >= 80 ? '#00ff88' : '#ffaa00', icon: '\u25C9' },
         ];
         var c = document.getElementById('summary-cards');
         if (!c) return;
@@ -130,85 +129,79 @@
     function themeGrid() {
         return document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
     }
-    function themeGridStrong() {
-        return document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)';
+    function themeSecondary() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? '#555' : '#aaa';
     }
     function themeBg() {
         return document.documentElement.getAttribute('data-theme') === 'light' ? '#f0f2f5' : '#0a0a1a';
     }
-    function themeSecondary() {
-        return document.documentElement.getAttribute('data-theme') === 'light' ? '#555' : '#aaa';
+
+    function makeCtx(id) {
+        var el = document.getElementById(id);
+        return el ? el.getContext('2d') : null;
     }
 
     function renderHealthChart() {
         var s = analyticsData.summary;
-        var ctx = document.getElementById('health-chart');
+        var ctx = makeCtx('health-chart');
         if (!ctx) return;
         if (charts.health) charts.health.destroy();
         charts.health = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Healthy', 'Moderate', 'Unhealthy'],
-                datasets: [{ data: [s.healthyCount, s.moderateCount, s.unhealthyCount], backgroundColor: ['#00ff88', '#ffaa00', '#ff3355'], borderWidth: 0 }]
+                datasets: [{ data: [s.healthyCount, s.moderateCount, s.unhealthyCount], backgroundColor: ['#00ff88', '#ffaa00', '#ff3355'], borderWidth: 0, hoverOffset: 8 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 12, font: { size: 11 } } } },
-                cutout: '70%',
+                responsive: true, maintainAspectRatio: true, aspectRatio: 1.6,
+                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 16, font: { size: 12, weight: '500' }, usePointStyle: true, pointStyle: 'circle' } } },
+                cutout: '72%',
             }
         });
     }
 
     function renderTypesChart() {
         var types = analyticsData.performance.nodeTypeCounts || {};
-        var ctx = document.getElementById('types-chart');
+        var ctx = makeCtx('types-chart');
         if (!ctx) return;
         if (charts.types) charts.types.destroy();
         var labels = Object.keys(types).map(function (t) { return TYPE_LABELS[t] || t; });
         var values = Object.values(types);
         var colors = Object.keys(types).map(function (t) { return TYPE_COLORS[t] || '#888'; });
         charts.types = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }] },
             options: {
-                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: themeText(), font: { size: 11 } }, grid: { color: themeGrid() } },
-                    y: { ticks: { color: themeSecondary(), font: { size: 11 } }, grid: { display: false } }
-                }
+                responsive: true, maintainAspectRatio: true, aspectRatio: 1.6,
+                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 12, font: { size: 11 }, usePointStyle: true, pointStyle: 'circle' } } },
+                cutout: '55%',
             }
         });
     }
 
     function renderComplexityChart() {
         var q = analyticsData.quality;
-        var ctx = document.getElementById('complexity-chart');
+        var ctx = makeCtx('complexity-chart');
         if (!ctx) return;
         if (charts.complexity) charts.complexity.destroy();
         var labels = Object.keys(q.averageComplexityByType).map(function (t) { return TYPE_LABELS[t] || t; });
         var values = Object.values(q.averageComplexityByType);
         var colors = Object.keys(q.averageComplexityByType).map(function (t) { return TYPE_COLORS[t] || '#888'; });
         charts.complexity = new Chart(ctx, {
-            type: 'radar',
+            type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{
-                    label: 'Avg Complexity', data: values,
-                    backgroundColor: 'rgba(0,204,255,0.1)', borderColor: '#00ccff', borderWidth: 2,
-                    pointBackgroundColor: colors, pointBorderColor: themeBg(), pointRadius: 4,
-                }]
+                datasets: [{ label: 'Avg Complexity', data: values, backgroundColor: colors, borderRadius: 6, borderSkipped: false, barPercentage: 0.6 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: themeText(), font: { size: 10 } } } },
+                responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function (c) { return 'Complexity: ' + c.raw; } } }
+                },
                 scales: {
-                    r: {
-                        angleLines: { color: themeGrid() },
-                        grid: { color: themeGrid() },
-                        pointLabels: { color: themeSecondary(), font: { size: 10 } },
-                        ticks: { color: themeText(), backdropColor: 'transparent', font: { size: 9 } }
-                    }
+                    y: { beginAtZero: true, ticks: { color: themeText(), font: { size: 11 } }, grid: { color: themeGrid() } },
+                    x: { ticks: { color: themeSecondary(), font: { size: 11 } }, grid: { display: false } }
                 }
             }
         });
@@ -216,26 +209,72 @@
 
     function renderHealthTypeChart() {
         var q = analyticsData.quality;
-        var ctx = document.getElementById('health-type-chart');
+        var ctx = makeCtx('health-type-chart');
         if (!ctx) return;
         if (charts.healthType) charts.healthType.destroy();
         var labels = Object.keys(q.averageHealthByType).map(function (t) { return TYPE_LABELS[t] || t; });
         var values = Object.keys(q.averageHealthByType).map(function (t) { return q.averageHealthByType[t] * 100; });
         var colors = values.map(function (v) { return v >= 80 ? '#00ff88' : v >= 50 ? '#ffaa00' : '#ff3355'; });
         charts.healthType = new Chart(ctx, {
-            type: 'polarArea',
+            type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: colors.map(function (c) { return c + '66'; }),
-                    borderColor: colors, borderWidth: 2,
-                }]
+                datasets: [{ label: 'Health %', data: values, backgroundColor: colors.map(function (c) { return c + '99'; }), borderColor: colors, borderWidth: 2, borderRadius: 6, borderSkipped: false, barPercentage: 0.6 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 8, font: { size: 10 } } } },
+                responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function (c) { return 'Health: ' + c.raw + '%'; } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { color: themeText(), font: { size: 11 }, callback: function (v) { return v + '%'; } }, grid: { color: themeGrid() } },
+                    x: { ticks: { color: themeSecondary(), font: { size: 11 } }, grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function renderDependencyChart() {
+        var types = analyticsData.performance.edgeTypeCounts || {};
+        var ctx = makeCtx('dep-chart');
+        if (!ctx) return;
+        if (charts.dep) charts.dep.destroy();
+        var labels = Object.keys(types);
+        var values = Object.values(types);
+        var depColors = { relationship: '#00ccff', dependency: '#ff8800', event: '#aa66ff', route: '#66ddaa', test: '#ff66aa' };
+        var colors = labels.map(function (l) { return depColors[l] || '#888'; });
+        if (labels.length === 0) { labels = ['No edges']; values = [1]; colors = ['#333']; }
+        charts.dep = new Chart(ctx, {
+            type: 'polarArea',
+            data: { labels: labels, datasets: [{ data: values, backgroundColor: colors.map(function (c) { return c + '77'; }), borderColor: colors, borderWidth: 2 }] },
+            options: {
+                responsive: true, maintainAspectRatio: true, aspectRatio: 1.6,
+                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 12, font: { size: 11 }, usePointStyle: true } } },
                 scales: { r: { grid: { color: themeGrid() }, ticks: { display: false } } }
+            }
+        });
+    }
+
+    function renderTestChart() {
+        var c = analyticsData.coverage;
+        var ctx = makeCtx('test-chart');
+        if (!ctx) return;
+        if (charts.test) charts.test.destroy();
+        var pct = c.overall || 0;
+        charts.test = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Tested (' + c.testedCount + ')', 'Untested (' + c.untestedCount + ')'],
+                datasets: [{ data: [pct, 100 - pct], backgroundColor: ['#66ddaa', 'rgba(255,255,255,0.06)'], borderWidth: 0, hoverOffset: 8 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: true, aspectRatio: 1.6,
+                cutout: '78%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: themeText(), padding: 12, font: { size: 11, weight: '500' }, usePointStyle: true } },
+                    tooltip: { callbacks: { label: function (c) { return c.raw.toFixed(1) + '%'; } } }
+                }
             }
         });
     }
@@ -246,15 +285,14 @@
         var c = document.getElementById('quality-metrics');
         if (!c) return;
         var metrics = [
-            { label: 'Average Complexity', value: q.averageComplexity, max: 20, good: '< 5' },
-            { label: 'High Complexity', value: q.highComplexityCount, max: s.totalNodes || 1, good: '0' },
-            { label: 'High Dependency', value: q.highDependencyCount, max: s.totalNodes || 1, good: '0' },
-            { label: 'God Classes', value: s.godClassCount, max: s.totalNodes || 1, good: '0' },
+            { label: 'Average Complexity', value: q.averageComplexity, max: 20, good: '< 5', color: q.averageComplexity < 5 ? '#00ff88' : q.averageComplexity < 10 ? '#ffaa00' : '#ff3355' },
+            { label: 'High Complexity', value: q.highComplexityCount, max: Math.max(1, s.totalNodes), good: '0', color: q.highComplexityCount === 0 ? '#00ff88' : q.highComplexityCount < 3 ? '#ffaa00' : '#ff3355' },
+            { label: 'High Dependency', value: q.highDependencyCount, max: Math.max(1, s.totalNodes), good: '0', color: q.highDependencyCount === 0 ? '#00ff88' : q.highDependencyCount < 3 ? '#ffaa00' : '#ff3355' },
+            { label: 'God Classes', value: s.godClassCount, max: Math.max(1, s.totalNodes), good: '0', color: s.godClassCount === 0 ? '#00ff88' : s.godClassCount < 2 ? '#ffaa00' : '#ff3355' },
         ];
         c.innerHTML = '<div class="metrics-grid">' + metrics.map(function (m) {
             var pct = Math.min(100, (m.value / m.max) * 100);
-            var color = pct < 25 ? '#00ff88' : pct < 50 ? '#ffaa00' : '#ff3355';
-            return '<div class="metric-card"><div class="metric-header"><span class="metric-label">' + m.label + '</span><span class="metric-value" style="color:' + color + '">' + m.value + '</span></div><div class="metric-bar"><div class="metric-fill" style="width:' + pct + '%;background:' + color + '"></div></div><span class="metric-target">Target: ' + m.good + '</span></div>';
+            return '<div class="metric-card"><div class="metric-header"><span class="metric-label">' + m.label + '</span><span class="metric-value" style="color:' + m.color + '">' + m.value + '</span></div><div class="metric-bar"><div class="metric-fill" style="width:' + pct + '%;background:' + m.color + '"></div></div><span class="metric-target">Target: ' + m.good + '</span></div>';
         }).join('') + '</div>';
     }
 
@@ -263,13 +301,13 @@
         var c = document.getElementById('god-classes-list');
         if (!c) return;
         if (gods.length === 0) {
-            c.innerHTML = '<p class="text-muted">No god classes detected. Your codebase has a healthy architecture.</p>';
+            c.innerHTML = '<p style="padding:24px;text-align:center;color:var(--text-muted);">No god classes detected. Your codebase has a healthy architecture.</p>';
             return;
         }
         c.innerHTML = gods.map(function (g) {
             var score = g.godScore || 0;
             var color = score > 25 ? '#ff3355' : score > 20 ? '#ffaa00' : '#ff8800';
-            return '<div class="god-class-item"><div class="god-header"><span style="color:' + color + ';font-weight:700;">' + g.node.label + '</span><span class="god-score" style="background:' + color + '">Score: ' + score.toFixed(1) + '</span></div><div class="god-metrics"><span>Complexity: ' + g.complexity + '</span><span>Methods: ' + g.methodCount + '</span><span>Dependencies: ' + g.dependencyCount + '</span></div></div>';
+            return '<div class="god-class-item"><div class="god-header"><span style="color:' + color + ';font-weight:700;font-size:14px;">' + g.node.label + '</span><span class="god-score" style="background:' + color + '">Score ' + score.toFixed(1) + '</span></div><div class="god-metrics"><span>Complexity: ' + g.complexity + '</span><span>Methods: ' + g.methodCount + '</span><span>Dependencies: ' + g.dependencyCount + '</span></div></div>';
         }).join('');
     }
 
@@ -277,9 +315,11 @@
         var s = analyticsData.summary;
         var c = document.getElementById('dependency-list');
         if (!c) return;
+        var avgDep = s.averageDependencies;
         c.innerHTML = '<div class="metrics-grid">' +
             '<div class="metric-card"><div class="metric-header"><span class="metric-label">Total Relationships</span><span class="metric-value" style="color:#ff8800;">' + s.totalEdges + '</span></div><div class="metric-bar"><div class="metric-fill" style="width:100%;background:#ff8800;"></div></div><span class="metric-target">Edges between components</span></div>' +
-            '<div class="metric-card"><div class="metric-header"><span class="metric-label">Avg Dependencies</span><span class="metric-value" style="color:#aa66ff;">' + s.averageDependencies.toFixed(2) + '</span></div><div class="metric-bar"><div class="metric-fill" style="width:' + Math.min(100, (s.averageDependencies / 5) * 100) + '%;background:#aa66ff;"></div></div><span class="metric-target">Lower is better (target < 3)</span></div>' +
+            '<div class="metric-card"><div class="metric-header"><span class="metric-label">Avg Dependencies</span><span class="metric-value" style="color:' + (avgDep < 3 ? '#00ff88' : avgDep < 5 ? '#ffaa00' : '#ff3355') + ';">' + avgDep.toFixed(2) + '</span></div><div class="metric-bar"><div class="metric-fill" style="width:' + Math.min(100, (avgDep / 8) * 100) + '%;background:' + (avgDep < 3 ? '#00ff88' : avgDep < 5 ? '#ffaa00' : '#ff3355') + ';"></div></div><span class="metric-target">Lower is better (target < 3)</span></div>' +
+            '<div class="metric-card"><div class="metric-header"><span class="metric-label">Avg Health</span><span class="metric-value" style="color:' + (s.averageHealth >= 0.8 ? '#00ff88' : s.averageHealth >= 0.5 ? '#ffaa00' : '#ff3355') + ';">' + (s.averageHealth * 100).toFixed(0) + '%</span></div><div class="metric-bar"><div class="metric-fill" style="width:' + (s.averageHealth * 100) + '%;background:' + (s.averageHealth >= 0.8 ? '#00ff88' : s.averageHealth >= 0.5 ? '#ffaa00' : '#ff3355') + ';"></div></div><span class="metric-target">Target > 80%</span></div>' +
             '</div>';
     }
 
@@ -300,6 +340,49 @@
                 return '<div class="cov-row"><span class="cov-name">' + n.label + '</span><span class="cov-type" style="color:' + (TYPE_COLORS[n.type] || '#888') + '">' + (TYPE_LABELS[n.type] || n.type) + '</span><span class="cov-badge ' + (tc > 0 ? 'yes' : 'no') + '">' + (tc > 0 ? tc + ' tests' : 'No tests') + '</span><span class="cov-health" style="color:' + ((n.healthScore || 0) >= 0.8 ? '#00ff88' : (n.healthScore || 0) >= 0.5 ? '#ffaa00' : '#ff3355') + '">' + Math.round((n.healthScore || 0) * 100) + '%</span></div>';
             }).join('') + '</div>';
         }
+    }
+
+    function renderQueryAnalysis() {
+        var s = analyticsData.suggestions || [];
+        var c = document.getElementById('query-analysis');
+        if (!c) return;
+        var nPlusOne = s.filter(function (item) { return item.icon === 'model' || item.message.indexOf('relationship') > -1 || item.message.indexOf('N+1') > -1 || item.message.indexOf('query') > -1; });
+        var container = document.getElementById('query-analysis-list');
+        if (!container) return;
+        if (nPlusOne.length === 0) {
+            container.innerHTML = '<p style="padding:24px;text-align:center;color:var(--text-muted);">No query issues detected. All relationship queries look efficient.</p>';
+            return;
+        }
+        container.innerHTML = nPlusOne.map(function (item) {
+            var sc = item.severity === 'high' ? '#ff3355' : item.severity === 'medium' ? '#ffaa00' : '#00ccff';
+            return '<div class="suggestion-card" style="border-left-color:' + sc + '"><div class="suggestion-header"><span class="suggestion-severity" style="background:' + sc + '">' + item.severity.toUpperCase() + '</span><span class="suggestion-type">' + item.title + '</span></div><div class="suggestion-body"><p>' + item.message + '</p></div><div class="suggestion-footer"><span class="suggestion-component" style="color:' + sc + '">' + item.component + '</span></div></div>';
+        }).join('');
+    }
+
+    function renderQueryCharts() {
+        var nodes = (analyticsData.architecture && analyticsData.architecture.nodes) || [];
+        var ctx = makeCtx('query-chart');
+        if (!ctx) return;
+        if (charts.query) charts.query.destroy();
+        var byType = {};
+        nodes.forEach(function (n) {
+            byType[n.type] = (byType[n.type] || 0) + 1;
+        });
+        var labels = Object.keys(byType).map(function (t) { return TYPE_LABELS[t] || t; });
+        var values = Object.values(byType);
+        var colors = Object.keys(byType).map(function (t) { return TYPE_COLORS[t] || '#888'; });
+        charts.query = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Count', data: values, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
+            options: {
+                responsive: true, maintainAspectRatio: true, aspectRatio: 2,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: themeText(), font: { size: 11 } }, grid: { color: themeGrid() } },
+                    x: { ticks: { color: themeSecondary(), font: { size: 11 } }, grid: { display: false } }
+                }
+            }
+        });
     }
 
     function renderSuggestions() {
@@ -324,35 +407,47 @@
         var suggestions = analyticsData.suggestions || [];
         var summary = document.getElementById('sprint-summary');
         if (summary) {
-            var trend = s.averageHealth >= 0.8 ? 'stable and healthy' : s.averageHealth >= 0.5 ? 'needs attention' : 'critical';
-            summary.innerHTML = '<div class="sprint-summary"><div class="sprint-stat"><span class="sprint-value">' + s.totalNodes + '</span><span class="sprint-label">Components</span></div><div class="sprint-stat"><span class="sprint-value" style="color:' + (s.averageHealth >= 0.8 ? '#00ff88' : '#ffaa00') + '">' + (s.averageHealth * 100).toFixed(0) + '%</span><span class="sprint-label">Avg Health (' + trend + ')</span></div><div class="sprint-stat"><span class="sprint-value">' + s.godClassCount + '</span><span class="sprint-label">God Classes</span></div><div class="sprint-stat"><span class="sprint-value">' + suggestions.length + '</span><span class="sprint-label">Open Issues</span></div><div class="sprint-stat"><span class="sprint-value">' + s.totalEdges + '</span><span class="sprint-label">Relationships</span></div><div class="sprint-stat"><span class="sprint-value">' + q.averageComplexity + '</span><span class="sprint-label">Avg Complexity</span></div></div>';
+            var healthTrend = s.averageHealth >= 0.8 ? 'Stable & Healthy' : s.averageHealth >= 0.5 ? 'Needs Attention' : 'Critical';
+            summary.innerHTML = '<div class="sprint-summary">' +
+                '<div class="sprint-stat"><span class="sprint-value">' + s.totalNodes + '</span><span class="sprint-label">Components</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value" style="color:' + (s.averageHealth >= 0.8 ? '#00ff88' : '#ffaa00') + '">' + (s.averageHealth * 100).toFixed(0) + '%</span><span class="sprint-label">Health (' + healthTrend + ')</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value">' + s.godClassCount + '</span><span class="sprint-label">God Classes</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value">' + suggestions.length + '</span><span class="sprint-label">Open Issues</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value">' + s.totalEdges + '</span><span class="sprint-label">Relationships</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value">' + q.averageComplexity + '</span><span class="sprint-label">Avg Complexity</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value">' + s.totalTests + '</span><span class="sprint-label">Total Tests</span></div>' +
+                '<div class="sprint-stat"><span class="sprint-value" style="color:' + ((analyticsData.coverage.overall || 0) >= 80 ? '#00ff88' : '#ffaa00') + '">' + (analyticsData.coverage.overall || 0) + '%</span><span class="sprint-label">Coverage</span></div>' +
+                '</div>';
         }
         var trajectory = document.getElementById('debt-trajectory');
         if (trajectory) {
             var dl = q.highComplexityCount + s.godClassCount * 2 + q.highDependencyCount;
-            var ds = dl <= 2 ? 'Low - Maintainable.' : dl <= 5 ? 'Moderate - Some areas need refactoring.' : 'High - Needs immediate attention.';
-            var dc = dl <= 2 ? '#00ff88' : dl <= 5 ? '#ffaa00' : '#ff3355';
-            trajectory.innerHTML = '<div class="debt-card"><div class="debt-score" style="color:' + dc + '">' + dl + '</div><div class="debt-label">Technical Debt Score</div><p style="color:#aaa;font-size:13px;margin-top:12px;">' + ds + '</p><div class="debt-bar"><div class="debt-fill" style="width:' + Math.min(100, (dl / 10) * 100) + '%;background:' + dc + '"></div></div></div>';
+            var scoreLabel = dl <= 2 ? 'Low - Maintainable. Great shape!' : dl <= 5 ? 'Moderate - Some refactoring needed.' : 'High - Needs immediate attention.';
+            var scoreColor = dl <= 2 ? '#00ff88' : dl <= 5 ? '#ffaa00' : '#ff3355';
+            trajectory.innerHTML =
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">' +
+                '<div class="debt-card"><div class="debt-score" style="color:' + scoreColor + '">' + dl + '</div><div class="debt-label">Technical Debt Score</div><p style="color:var(--text-tertiary);font-size:13px;margin-top:12px;">' + scoreLabel + '</p><div class="debt-bar"><div class="debt-fill" style="width:' + Math.min(100, (dl / 10) * 100) + '%;background:' + scoreColor + '"></div></div></div>' +
+                '<div class="debt-card"><div class="debt-score" style="color:' + (s.averageHealth * 100 > 80 ? '#00ff88' : '#ffaa00') + '">' + (s.averageHealth * 100).toFixed(0) + '%</div><div class="debt-label">Overall Health</div><p style="color:var(--text-tertiary);font-size:13px;margin-top:12px;">' + s.healthyCount + ' healthy, ' + s.moderateCount + ' moderate, ' + s.unhealthyCount + ' unhealthy</p><div class="debt-bar"><div class="debt-fill" style="width:' + (s.averageHealth * 100) + '%;background:' + (s.averageHealth >= 0.8 ? '#00ff88' : '#ffaa00') + '"></div></div></div>' +
+                '</div>';
         }
         var actions = document.getElementById('sprint-actions');
         if (actions) {
-            var critical = suggestions.filter(function (s) { return s.severity === 'high'; });
+            var groups = { high: [], medium: [], low: [] };
+            suggestions.forEach(function (s) { if (groups[s.severity]) groups[s.severity].push(s); });
             var html = '';
-            if (critical.length > 0) {
-                html += '<h4 style="color:#ff3355;margin-bottom:12px;">Critical (' + critical.length + ')</h4>';
-                html += critical.slice(0, 5).map(function (item) {
-                    return '<div class="action-item"><span class="action-text">' + item.message.slice(0, 120) + '...</span></div>';
-                }).join('');
-            } else {
-                html += '<p class="text-muted">No critical issues. Great work!</p>';
-            }
-            var med = suggestions.filter(function (s) { return s.severity === 'medium'; });
-            if (med.length > 0) {
-                html += '<h4 style="color:#ffaa00;margin:16px 0 12px;">Improvements (' + med.length + ')</h4>';
-                html += med.slice(0, 3).map(function (item) {
-                    return '<div class="action-item"><span class="action-text">' + item.message.slice(0, 120) + '...</span></div>';
+            if (groups.high.length > 0) {
+                html += '<h4 style="color:#ff3355;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Critical (' + groups.high.length + ')</h4>';
+                html += groups.high.slice(0, 5).map(function (item) {
+                    return '<div class="action-item"><span class="action-text" style="color:#ff3355;">\u26A0 ' + item.title + '</span><span style="font-size:11px;color:var(--text-muted);display:block;margin-top:4px;">' + item.component + ' \u2014 ' + item.message.slice(0, 150) + '</span></div>';
                 }).join('');
             }
+            if (groups.medium.length > 0) {
+                html += '<h4 style="color:#ffaa00;margin:16px 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Improvements (' + groups.medium.length + ')</h4>';
+                html += groups.medium.slice(0, 5).map(function (item) {
+                    return '<div class="action-item"><span class="action-text">' + item.title + '</span><span style="font-size:11px;color:var(--text-muted);display:block;margin-top:4px;">' + item.component + ' \u2014 ' + item.message.slice(0, 150) + '</span></div>';
+                }).join('');
+            }
+            if (html === '') html = '<p style="padding:24px;text-align:center;color:var(--text-muted);">No actions needed. Great code quality!</p>';
             actions.innerHTML = html;
         }
     }
@@ -363,36 +458,72 @@
         if (network) { network.destroy(); network = null; }
         var gd = analyticsData.architecture;
         if (!gd || !gd.nodes || gd.nodes.length === 0) {
-            container.innerHTML = '<div class="panel-loading">No architecture data available.</div>';
+            container.innerHTML = '<div style="padding:60px;text-align:center;color:var(--text-muted);">No architecture data available. Run <code>php artisan canvas:scan</code> first.</div>';
             return;
         }
-        container.style.cssText = 'width:100%;height:600px;border-radius:8px;overflow:hidden;';
+        container.style.cssText = 'width:100%;height:550px;border-radius:8px;overflow:hidden;';
+
+        var edgeColorFn = function (type) {
+            return { relationship: '#00ccff', dependency: '#ff8800', event: '#aa66ff', route: '#66ddaa', test: '#ff66aa' }[type] || '#888';
+        };
+
+        var shapeFn = function (type) {
+            return { model: 'ellipse', controller: 'box', job: 'diamond', listener: 'triangle', policy: 'star', middleware: 'hexagon', provider: 'square', route: 'dot' }[type] || 'dot';
+        };
+
         var nodes = new vis.DataSet((gd.nodes || []).map(function (node) {
             var tc = TYPE_COLORS[node.type] || '#888';
             var h = node.healthScore || 0.5;
+            var bgColor = h >= 0.8 ? 'rgba(0,255,136,0.18)' : h >= 0.5 ? 'rgba(255,170,0,0.18)' : 'rgba(255,51,85,0.18)';
+            var borderColor = h >= 0.8 ? '#00ff88' : h >= 0.5 ? '#ffaa00' : '#ff3355';
+            var size = node.type === 'route' ? 18 : 28;
             return {
-                id: node.id, label: node.label, group: node.type, shape: 'box',
-                color: {
-                    background: h >= 0.8 ? 'rgba(0,255,136,0.15)' : h >= 0.5 ? 'rgba(255,170,0,0.15)' : 'rgba(255,51,85,0.15)',
-                    border: tc, highlight: { background: tc + '33', border: tc }
-                },
-                font: { size: 12, color: '#ccc', face: 'Inter, sans-serif' },
-                borderWidth: 2, margin: 10,
-                title: node.label + '<br/>Type: ' + (TYPE_LABELS[node.type] || node.type) + '<br/>Health: ' + Math.round(h * 100) + '%',
+                id: node.id, label: node.label, group: node.type,
+                shape: shapeFn(node.type),
+                size: size,
+                color: { background: bgColor, border: borderColor, highlight: { background: tc + '44', border: tc } },
+                font: { size: 13, color: '#ddd', face: 'Inter, sans-serif', strokeWidth: 2, strokeColor: themeBg() },
+                borderWidth: 2, borderWidthSelected: 3, margin: 12,
+                title: '<strong>' + node.label + '</strong><br/>Type: ' + (TYPE_LABELS[node.type] || node.type) + '<br/>Health: ' + Math.round(h * 100) + '%<br/>Complexity: ' + (node.complexityScore || 1),
+                nodeData: node,
             };
         }));
+
         var edges = new vis.DataSet((gd.edges || []).map(function (edge) {
+            var eColor = edgeColorFn(edge.type);
             return {
                 id: edge.id, from: edge.sourceId, to: edge.targetId,
-                label: edge.type, color: { color: edge.color || '#888', opacity: 0.5 },
-                arrows: { to: { enabled: true, scaleFactor: 0.6 } },
-                width: 1.5, font: { size: 10, color: '#666', strokeWidth: 0 },
+                label: edge.type,
+                color: { color: eColor, opacity: 0.45 },
+                arrows: { to: { enabled: true, scaleFactor: 0.7 } },
+                width: edge.type === 'test' ? 1.2 : 1.8,
+                dashes: edge.type === 'test',
+                font: { size: 10, color: '#666', strokeWidth: 0, face: 'Inter, sans-serif' },
             };
         }));
-        network = new vis.Network(container, { nodes: nodes, edges: edges }, {
-            physics: { solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 180, springConstant: 0.03, damping: 0.5 }, stabilization: { iterations: 100 } },
-            edges: { smooth: { type: 'curvedCW', roundness: 0.2 } },
-            interaction: { hover: true, tooltipDelay: 200, navigationButtons: true, keyboard: true },
+
+        var options = {
+            physics: {
+                solver: 'forceAtlas2Based',
+                forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.004, springLength: 200, springConstant: 0.035, damping: 0.5 },
+                stabilization: { iterations: 120 },
+            },
+            edges: { smooth: { type: 'curvedCW', roundness: 0.15 } },
+            interaction: { hover: true, tooltipDelay: 150, navigationButtons: true, keyboard: true, zoomView: true },
+            nodes: { shadow: { enabled: true, color: 'rgba(0,0,0,0.3)', size: 6 } },
+        };
+
+        network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
+
+        network.on('click', function (params) {
+            if (params.nodes.length > 0) {
+                var nodeId = params.nodes[0];
+                network.focus(nodeId, { scale: 1.8, animation: true });
+            }
+        });
+
+        network.on('stabilized', function () {
+            network.fit({ animation: true });
         });
     }
 
