@@ -33,7 +33,7 @@ class CanvasServiceProvider extends ServiceProvider
             ], ['canvas', 'canvas-views']);
 
             $this->publishes([
-                __DIR__.'/../public' => public_path('vendor/canvas'),
+                __DIR__.'/../public/vendor/canvas' => public_path('vendor/canvas'),
             ], ['canvas', 'canvas-assets']);
 
             $this->publishesMigrations([
