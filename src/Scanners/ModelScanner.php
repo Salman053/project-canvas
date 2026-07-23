@@ -72,7 +72,7 @@ class ModelScanner
             return $m[1];
         }
 
-        return str_plural(Str::snake($className));
+        return Str::plural(Str::snake($className));
     }
 
     private function extractRelationships(string $contents): array
