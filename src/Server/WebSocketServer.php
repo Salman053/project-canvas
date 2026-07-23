@@ -8,7 +8,7 @@ use RuntimeException;
 
 class WebSocketServer
 {
-    private ?resource $socket = null;
+    private mixed $socket = null;
 
     private array $clients = [];
 
