@@ -6,6 +6,7 @@ namespace Salman053\Canvas\Scanners;
 
 use Salman053\Canvas\Data\ArchitectureGraph;
 use Salman053\Canvas\Data\Edge;
+use Salman053\Canvas\Data\Node;
 
 class CodebaseScanner
 {
