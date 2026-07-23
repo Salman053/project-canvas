@@ -1,5 +1,5 @@
 {
-    "$schema": "https://getcomposer.org/schema.json",
+    "$schema": "https://getcomposer.org",
     "name": "salman053/project-canvas",
     "description": "An immersive 3D visualization tool for Laravel applications that maps architecture, dependencies, and test coverage in real-time.",
     "keywords": [
@@ -10,7 +10,7 @@
         "architecture",
         "3d"
     ],
-    "homepage": "https://github.com/Salman053/project-canvas",
+    "homepage": "https://github.com",
     "license": "MIT",
     "authors": [
         {
@@ -21,11 +21,11 @@
     ],
     "require": {
         "php": "^8.3",
-        "illuminate/support": "^12.0||^13.0",
-        "illuminate/console": "^12.0||^13.0",
-        "illuminate/http": "^12.0||^13.0",
-        "illuminate/routing": "^12.0||^13.0",
-        "illuminate/filesystem": "^12.0||^13.0"
+        "illuminate/console": "^12.0 || ^13.0",
+        "illuminate/filesystem": "^12.0 || ^13.0",
+        "illuminate/http": "^12.0 || ^13.0",
+        "illuminate/routing": "^12.0 || ^13.0",
+        "illuminate/support": "^12.0 || ^13.0"
     },
     "require-dev": {
         "larastan/larastan": "^3.9",
@@ -34,7 +34,7 @@
         "laravel/pint": "^1.29",
         "laravel/prompts": "^0.3",
         "laravel/pao": "^1.0",
-        "orchestra/testbench": "^10.0||^11.0",
+        "orchestra/testbench": "^10.0 || ^11.0",
         "pestphp/pest": "^4.6",
         "pestphp/pest-plugin-laravel": "^4.1",
         "pestphp/pest-plugin-type-coverage": "^4.0",
