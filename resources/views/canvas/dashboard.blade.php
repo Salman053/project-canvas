@@ -7,7 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="ws-host" content="{{ config('canvas.websocket.host') }}">
     <meta name="ws-port" content="{{ config('canvas.websocket.port') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/canvas/css/canvas.css') }}">
+    @php $publishedCss = public_path('vendor/canvas/css/canvas.css'); $cssUrl = file_exists($publishedCss) ? asset('vendor/canvas/css/canvas.css') : url('/canvas/assets/css/canvas.css'); @endphp
+    <link rel="stylesheet" href="{{ $cssUrl }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
@@ -140,6 +141,7 @@
             apiBase: '/api/canvas',
         };
     </script>
-    <script src="{{ asset('vendor/canvas/js/dashboard.js') }}"></script>
+    @php $publishedJs = public_path('vendor/canvas/js/dashboard.js'); $jsUrl = file_exists($publishedJs) ? asset('vendor/canvas/js/dashboard.js') : url('/canvas/assets/js/dashboard.js'); @endphp
+    <script src="{{ $jsUrl }}"></script>
 </body>
 </html>

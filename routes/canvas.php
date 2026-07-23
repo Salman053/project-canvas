@@ -19,6 +19,28 @@ Route::prefix('api/canvas')->group(function () {
     Route::get('/analytics', [CanvasApiController::class, 'analytics']);
 });
 
+Route::get('/canvas/assets/{path}', function (string $path) {
+    $filePath = __DIR__.'/../public/vendor/canvas/'.$path;
+
+    if (! file_exists($filePath)) {
+        abort(404);
+    }
+
+    $mimeTypes = [
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'svg' => 'image/svg+xml',
+        'woff2' => 'font/woff2',
+    ];
+
+    $ext = pathinfo($path, PATHINFO_EXTENSION);
+    $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
+
+    return response(file_get_contents($filePath), 200, ['Content-Type' => $mime]);
+})->where('path', '.*');
+
 Route::get('/canvas', function () {
     return view('canvas::graph');
 });
