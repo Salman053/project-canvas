@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laravel Canvas</title>
+    <title>Laravel Canvas — Architecture Graph</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="ws-host" content="{{ config('canvas.websocket.host') }}">
     <meta name="ws-port" content="{{ config('canvas.websocket.port') }}">
     <link rel="stylesheet" href="{{ asset('vendor/canvas/css/canvas.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="canvas-container">
         <div id="loading-overlay">
             <div class="loader">
                 <div class="loader-ring"></div>
-                <div class="loader-text">Scanning codebase...</div>
+                <div class="loader-text">Loading architecture graph...</div>
             </div>
         </div>
 
@@ -35,45 +34,17 @@
                 </div>
 
                 <nav class="toolbar-nav">
-                    <button class="toolbar-btn" data-filter="all" title="Show All">
-                        <span class="icon">◉</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="model" title="Models">
-                        <span class="icon" style="color: #00ccff">■</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="controller" title="Controllers">
-                        <span class="icon" style="color: #ff8800">▲</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="job" title="Jobs">
-                        <span class="icon" style="color: #aa66ff">●</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="listener" title="Listeners">
-                        <span class="icon" style="color: #66ddaa">◆</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="policy" title="Policies">
-                        <span class="icon" style="color: #ff66aa">★</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="middleware" title="Middleware">
-                        <span class="icon" style="color: #ffaa00">⬡</span>
-                    </button>
-                    <button class="toolbar-btn" data-filter="provider" title="Providers">
-                        <span class="icon" style="color: #ff3355">⬟</span>
-                    </button>
+                    <button class="toolbar-btn" data-filter="all" title="Show All">All</button>
+                    <button class="toolbar-btn" data-filter="model" title="Models">Models</button>
+                    <button class="toolbar-btn" data-filter="controller" title="Controllers">Controllers</button>
+                    <button class="toolbar-btn" data-filter="route" title="Routes">Routes</button>
 
                     <div class="toolbar-divider"></div>
 
-                    <button id="btn-heatmap" class="toolbar-btn" title="Heat Map">
-                        <span class="icon">🌡</span>
-                    </button>
-                    <button id="btn-snapshot" class="toolbar-btn" title="Take Snapshot">
-                        <span class="icon">📸</span>
-                    </button>
-                    <button id="btn-export" class="toolbar-btn" title="Export">
-                        <span class="icon">↓</span>
-                    </button>
-                    <button id="btn-dashboard" class="toolbar-btn" title="Dashboard">
-                        <span class="icon">📊</span>
-                    </button>
+                    <button id="btn-heatmap" class="toolbar-btn" title="Heat Map">Heat</button>
+                    <button id="btn-snapshot" class="toolbar-btn" title="Take Snapshot">Snap</button>
+                    <button id="btn-export" class="toolbar-btn" title="Export">Export</button>
+                    <button id="btn-dashboard" class="toolbar-btn" title="Dashboard">Dashboard</button>
                 </nav>
 
                 <div class="connection-status" id="connection-status">
@@ -85,26 +56,22 @@
             <div id="stats-bar">
                 <div class="stat"><span class="stat-value" id="stat-nodes">0</span> nodes</div>
                 <div class="stat"><span class="stat-value" id="stat-edges">0</span> edges</div>
-                <div class="stat"><span class="stat-value" id="stat-health">0%</span> health</div>
-                <div class="stat"><span class="stat-value" id="stat-tests">0</span> tests</div>
+                <div class="stat"><span class="stat-value" id="stat-health">0%</span> avg health</div>
+                <div class="stat"><span class="stat-value" id="stat-tests">0</span> test edges</div>
             </div>
         </div>
 
-        <aside id="side-panel" class="side-panel hidden">
+        <aside id="side-panel" class="side-panel">
             <div class="panel-header">
                 <h3 id="panel-title">Component Details</h3>
                 <button id="panel-close" class="panel-close">✕</button>
             </div>
             <div class="panel-body" id="panel-body">
-                <div class="panel-loading">Loading...</div>
+                <div class="panel-loading">Select a component to inspect</div>
             </div>
         </aside>
 
         <div id="test-notification-container"></div>
-
-        <div id="minimap" class="minimap">
-            <canvas id="minimap-canvas"></canvas>
-        </div>
     </div>
 
     <script>
@@ -112,10 +79,6 @@
             wsHost: document.querySelector('meta[name="ws-host"]')?.content || '127.0.0.1',
             wsPort: document.querySelector('meta[name="ws-port"]')?.content || '8081',
             apiBase: '/api/canvas',
-            particleCount: {{ config('canvas.visualization.particle_count', 2000) }},
-            nodeSpacing: {{ config('canvas.visualization.node_spacing', 8.0) }},
-            animationSpeed: {{ config('canvas.visualization.animation_speed', 1.0) }},
-            bgColor: '{{ config('canvas.visualization.background_color', '#0a0a1a') }}'
         };
     </script>
     <script src="{{ asset('vendor/canvas/js/canvas.js') }}"></script>

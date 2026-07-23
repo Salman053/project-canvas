@@ -154,8 +154,8 @@ class ArchitectureGraph
             'edgeCount' => $this->getEdgeCount(),
             'averageDependencies' => $this->getAverageDependencies(),
             'averageHealth' => $this->getAverageHealth(),
-            'nodes' => array_map(fn (Node $n) => $n->toArray(), $this->nodes),
-            'edges' => array_map(fn (Edge $e) => $e->toArray(), $this->edges),
+            'nodes' => array_values(array_map(fn (Node $n) => $n->toArray(), $this->nodes)),
+            'edges' => array_values(array_map(fn (Edge $e) => $e->toArray(), $this->edges)),
         ];
     }
 }
