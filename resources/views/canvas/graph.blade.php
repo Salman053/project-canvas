@@ -47,6 +47,7 @@
                     <button id="btn-dashboard" class="toolbar-btn" title="Dashboard">Dashboard</button>
                 </nav>
 
+                <button class="theme-toggle" id="graph-theme-toggle" title="Toggle theme">🌙 Light</button>
                 <div class="connection-status" id="connection-status">
                     <span class="status-dot"></span>
                     <span class="status-text">Disconnected</span>

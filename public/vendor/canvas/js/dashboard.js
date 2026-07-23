@@ -25,7 +25,28 @@
     function init() {
         loadAnalytics();
         setupTabs();
+        setupThemeToggle();
         connectWebSocket();
+    }
+
+    function setupThemeToggle() {
+        var btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+        var saved = localStorage.getItem('canvas-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        btn.innerHTML = saved === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
+
+        btn.addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('canvas-theme', next);
+            btn.innerHTML = next === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
+            if (charts.health) { charts.health.resize(); charts.health.update(); }
+            if (charts.types) { charts.types.resize(); charts.types.update(); }
+            if (charts.complexity) { charts.complexity.resize(); charts.complexity.update(); }
+            if (charts.healthType) { charts.healthType.resize(); charts.healthType.update(); }
+        });
     }
 
     function loadAnalytics() {
@@ -103,6 +124,22 @@
         }).join('');
     }
 
+    function themeText() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? '#666' : '#888';
+    }
+    function themeGrid() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
+    }
+    function themeGridStrong() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)';
+    }
+    function themeBg() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? '#f0f2f5' : '#0a0a1a';
+    }
+    function themeSecondary() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? '#555' : '#aaa';
+    }
+
     function renderHealthChart() {
         var s = analyticsData.summary;
         var ctx = document.getElementById('health-chart');
@@ -116,7 +153,7 @@
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: '#888', padding: 12, font: { size: 11 } } } },
+                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 12, font: { size: 11 } } } },
                 cutout: '70%',
             }
         });
@@ -137,8 +174,8 @@
                 responsive: true, maintainAspectRatio: false, indexAxis: 'y',
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { ticks: { color: '#666', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                    y: { ticks: { color: '#aaa', font: { size: 11 } }, grid: { display: false } }
+                    x: { ticks: { color: themeText(), font: { size: 11 } }, grid: { color: themeGrid() } },
+                    y: { ticks: { color: themeSecondary(), font: { size: 11 } }, grid: { display: false } }
                 }
             }
         });
@@ -159,18 +196,18 @@
                 datasets: [{
                     label: 'Avg Complexity', data: values,
                     backgroundColor: 'rgba(0,204,255,0.1)', borderColor: '#00ccff', borderWidth: 2,
-                    pointBackgroundColor: colors, pointBorderColor: '#0a0a1a', pointRadius: 4,
+                    pointBackgroundColor: colors, pointBorderColor: themeBg(), pointRadius: 4,
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#666', font: { size: 10 } } } },
+                plugins: { legend: { labels: { color: themeText(), font: { size: 10 } } } },
                 scales: {
                     r: {
-                        angleLines: { color: 'rgba(255,255,255,0.05)' },
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        pointLabels: { color: '#aaa', font: { size: 10 } },
-                        ticks: { color: '#555', backdropColor: 'transparent', font: { size: 9 } }
+                        angleLines: { color: themeGrid() },
+                        grid: { color: themeGrid() },
+                        pointLabels: { color: themeSecondary(), font: { size: 10 } },
+                        ticks: { color: themeText(), backdropColor: 'transparent', font: { size: 9 } }
                     }
                 }
             }
@@ -197,8 +234,8 @@
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: '#888', padding: 8, font: { size: 10 } } } },
-                scales: { r: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { display: false } } }
+                plugins: { legend: { position: 'bottom', labels: { color: themeText(), padding: 8, font: { size: 10 } } } },
+                scales: { r: { grid: { color: themeGrid() }, ticks: { display: false } } }
             }
         });
     }

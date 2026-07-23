@@ -196,15 +196,15 @@ class CanvasApiController extends Controller
         $routeNodes = $graph->getNodesByType('route');
         $highDepNodes = array_filter($nodes, fn (Node $n) => count($n->getDependencies()) > 3);
 
+        /** @var array{node: array<string, mixed>, complexity: int, methodCount: int, dependencyCount: int} $gc */
         $suggestions = [];
         foreach ($godClasses as $gc) {
-            $node = $gc['node'];
             $suggestions[] = [
                 'type' => 'warning',
                 'icon' => 'god-class',
                 'title' => 'God Class Detected',
-                'message' => "{$node['label']} has high complexity ({$gc['complexity']}) with {$gc['methodCount']} methods and {$gc['dependencyCount']} dependencies. Consider splitting into smaller services.",
-                'component' => $node['label'],
+                'message' => $gc['node']['label'].' has high complexity ('.$gc['complexity'].') with '.$gc['methodCount'].' methods and '.$gc['dependencyCount'].' dependencies. Consider splitting into smaller services.',
+                'component' => $gc['node']['label'],
                 'severity' => 'high',
             ];
         }
@@ -286,7 +286,11 @@ class CanvasApiController extends Controller
             ];
         }
 
-        usort($suggestions, fn ($a, $b) => ['high' => 3, 'medium' => 2, 'low' => 1][$b['severity']] <=> ['high' => 3, 'medium' => 2, 'low' => 1][$a['severity']]);
+        /** @var array{type: string, icon: string, title: string, message: string, component: string, severity: string} $a, $b */
+        usort($suggestions, function (array $a, array $b): int {
+            $order = ['high' => 3, 'medium' => 2, 'low' => 1];
+            return ($order[$b['severity']] ?? 0) <=> ($order[$a['severity']] ?? 0);
+        });
 
         $edgeTypes = [];
         foreach ($edges as $edge) {

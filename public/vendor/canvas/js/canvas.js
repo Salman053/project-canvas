@@ -461,7 +461,42 @@
             }
         });
 
+        setupThemeToggle();
         setupLegend();
+    }
+
+    function setupThemeToggle() {
+        var btn = document.getElementById('graph-theme-toggle');
+        if (!btn) return;
+        var saved = localStorage.getItem('canvas-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        btn.innerHTML = saved === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
+
+        btn.addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('canvas-theme', next);
+            btn.innerHTML = next === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
+
+            var bg = next === 'light' ? '#f0f2f5' : '#0a0a1a';
+            var nodeColor = next === 'light' ? '#1a1a2e' : '#e0e0e0';
+            var edgeColor = next === 'light' ? '#666' : '#888';
+            var bgRgba = next === 'light' ? '#f0f2f5' : '#0a0a1a';
+
+            network.setOptions({
+                nodes: { font: { color: nodeColor, strokeColor: bg } },
+                edges: { font: { color: edgeColor } }
+            });
+
+            var allNodes = nodesDataSet.get();
+            allNodes.forEach(function (n) {
+                nodesDataSet.update({ id: n.id, font: { color: nodeColor, strokeColor: bg } });
+            });
+            edgesDataSet.get().forEach(function (e) {
+                edgesDataSet.update({ id: e.id, font: { color: edgeColor } });
+            });
+        });
     }
 
     function setupLegend() {

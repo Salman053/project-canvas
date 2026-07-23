@@ -27,6 +27,7 @@
                 <button class="tab-btn" data-tab="suggestions">Suggestions</button>
                 <button class="tab-btn" data-tab="sprint">Sprint Review</button>
             </nav>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙 Dark</button>
             <div class="connection-status" id="connection-status">
                 <span class="status-dot"></span>
                 <span class="status-text">Disconnected</span>
