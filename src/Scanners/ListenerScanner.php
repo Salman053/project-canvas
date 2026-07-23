@@ -27,6 +27,7 @@ class ListenerScanner
                 }
 
                 $contents = file_get_contents($file->getPathname());
+
                 if (! $contents) {
                     continue;
                 }
@@ -72,6 +73,7 @@ class ListenerScanner
 
         foreach ($matches[1] as $event) {
             $event = trim($event);
+
             if ($event && ! str_starts_with($event, '$')) {
                 $events[] = $event;
             }

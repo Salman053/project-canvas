@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace VendorName\Canvas\Scanners;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use VendorName\Canvas\Data\Node;
 
 class ModelScanner
@@ -28,6 +29,7 @@ class ModelScanner
                 }
 
                 $contents = file_get_contents($file->getPathname());
+
                 if (! $contents) {
                     continue;
                 }
@@ -70,7 +72,7 @@ class ModelScanner
             return $m[1];
         }
 
-        return str_plural(\Illuminate\Support\Str::snake($className));
+        return str_plural(Str::snake($className));
     }
 
     private function extractRelationships(string $contents): array

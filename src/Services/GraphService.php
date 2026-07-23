@@ -66,6 +66,7 @@ class GraphService
         $incoming = [];
         foreach ($node->getDependents() as $depId) {
             $depNode = $graph->getNode($depId);
+
             if ($depNode) {
                 $incoming[] = $depNode->toArray();
             }
@@ -74,6 +75,7 @@ class GraphService
         $outgoing = [];
         foreach ($node->getDependencies() as $depId) {
             $depNode = $graph->getNode($depId);
+
             if ($depNode) {
                 $outgoing[] = $depNode->toArray();
             }

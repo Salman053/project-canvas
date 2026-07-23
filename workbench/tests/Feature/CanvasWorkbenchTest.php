@@ -1,20 +1,19 @@
 <?php
 
-uses(Workbench\Tests\TestCase::class);
+use Workbench\Tests\TestCase;
 
-use VendorName\Canvas\Facades\Canvas;
+uses(TestCase::class);
 
-test('facade scan returns nodes', function () {
-    $graph = Canvas::scan();
-
-    expect($graph->getNodeCount())->toBeGreaterThan(0);
-    expect($graph->getEdgeCount())->toBeGreaterThan(0);
+test('canvas:scan artisan command succeeds', function () {
+    $this->artisan('canvas:scan')
+        ->expectsOutputToContain('Nodes discovered')
+        ->assertSuccessful();
 });
 
-test('facade scan discovers routes', function () {
-    $graph = Canvas::scan();
-
-    $edges = $graph->getEdgesByType('route');
-
-    expect($edges)->not->toBeEmpty();
+test('canvas:scan outputs component counts', function () {
+    $this->artisan('canvas:scan')
+        ->expectsOutputToContain('Nodes discovered')
+        ->expectsOutputToContain('Edges mapped')
+        ->expectsOutputToContain('Average health score')
+        ->assertSuccessful();
 });

@@ -7,13 +7,21 @@ namespace VendorName\Canvas\Data;
 class Node
 {
     public const TYPE_MODEL = 'model';
+
     public const TYPE_CONTROLLER = 'controller';
+
     public const TYPE_JOB = 'job';
+
     public const TYPE_LISTENER = 'listener';
+
     public const TYPE_POLICY = 'policy';
+
     public const TYPE_MIDDLEWARE = 'middleware';
+
     public const TYPE_PROVIDER = 'provider';
+
     public const TYPE_EVENT = 'event';
+
     public const TYPE_ROUTE = 'route';
 
     private array $metadata = [];

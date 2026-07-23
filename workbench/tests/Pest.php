@@ -1,3 +1,5 @@
 <?php
 
-uses(Workbench\Tests\TestCase::class)->in(__DIR__);
+use Workbench\Tests\TestCase;
+
+uses(TestCase::class)->in(__DIR__);

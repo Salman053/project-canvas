@@ -27,6 +27,7 @@ class ProviderScanner
                 }
 
                 $contents = file_get_contents($file->getPathname());
+
                 if (! $contents) {
                     continue;
                 }

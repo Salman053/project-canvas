@@ -6,7 +6,6 @@ namespace VendorName\Canvas\Scanners;
 
 use Illuminate\Support\Facades\File;
 use VendorName\Canvas\Data\Edge;
-use VendorName\Canvas\Data\Node;
 
 class TestScanner
 {
@@ -36,6 +35,7 @@ class TestScanner
                 }
 
                 $contents = file_get_contents($file->getPathname());
+
                 if (! $contents) {
                     continue;
                 }

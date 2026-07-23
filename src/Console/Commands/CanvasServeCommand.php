@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace VendorName\Canvas\Console\Commands;
 
 use Illuminate\Console\Command;
+use RuntimeException;
 use VendorName\Canvas\Scanners\CodebaseScanner;
 use VendorName\Canvas\Server\WebSocketServer;
 use VendorName\Canvas\Services\GraphService;
@@ -41,7 +42,7 @@ class CanvasServeCommand extends Command
 
         try {
             $this->wsServer = new WebSocketServer($host, $port);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->components->error($e->getMessage());
 
             return self::FAILURE;

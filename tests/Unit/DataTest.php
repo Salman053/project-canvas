@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use VendorName\Canvas\Data\Node;
-use VendorName\Canvas\Data\Edge;
 use VendorName\Canvas\Data\ArchitectureGraph;
+use VendorName\Canvas\Data\Edge;
+use VendorName\Canvas\Data\Node;
 
 it('creates a node with required properties', function () {
     $node = new Node('test-1', 'User', 'model', 'App\Models\User', '/app/Models/User.php');

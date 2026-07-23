@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use VendorName\Canvas\Data\Node;
 use VendorName\Canvas\Data\ArchitectureGraph;
+use VendorName\Canvas\Data\Node;
 use VendorName\Canvas\Services\ComplexityAnalyzer;
-use VendorName\Canvas\Services\HealthService;
 use VendorName\Canvas\Services\GraphService;
+use VendorName\Canvas\Services\HealthService;
 
 it('analyzes node complexity', function () {
     $analyzer = new ComplexityAnalyzer;

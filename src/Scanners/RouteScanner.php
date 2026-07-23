@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace VendorName\Canvas\Scanners;
 
+use Closure;
 use Illuminate\Support\Facades\Route;
-use VendorName\Canvas\Data\Node;
+use Throwable;
 use VendorName\Canvas\Data\Edge;
+use VendorName\Canvas\Data\Node;
 
 class RouteScanner
 {
@@ -17,7 +19,7 @@ class RouteScanner
 
         try {
             $routes = Route::getRoutes();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return ['nodes' => [], 'edges' => []];
         }
 
@@ -25,7 +27,7 @@ class RouteScanner
             $action = $route->getAction();
             $controller = $action['controller'] ?? $action['uses'] ?? null;
 
-            if ($controller instanceof \Closure) {
+            if ($controller instanceof Closure) {
                 continue;
             }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace VendorName\Canvas\Scanners;
 
-use Illuminate\Support\Facades\File;
 use VendorName\Canvas\Data\Edge;
 
 class DependencyScanner
@@ -22,11 +21,13 @@ class DependencyScanner
 
         foreach ($this->allNodes as $node) {
             $filePath = $node->getFilePath();
+
             if (! $filePath || ! file_exists($filePath)) {
                 continue;
             }
 
             $contents = file_get_contents($filePath);
+
             if (! $contents) {
                 continue;
             }

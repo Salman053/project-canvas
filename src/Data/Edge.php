@@ -7,9 +7,13 @@ namespace VendorName\Canvas\Data;
 class Edge
 {
     public const TYPE_RELATIONSHIP = 'relationship';
+
     public const TYPE_DEPENDENCY = 'dependency';
+
     public const TYPE_EVENT = 'event';
+
     public const TYPE_ROUTE = 'route';
+
     public const TYPE_TEST = 'test';
 
     private array $metadata = [];

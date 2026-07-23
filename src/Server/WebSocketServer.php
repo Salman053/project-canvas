@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace VendorName\Canvas\Server;
 
+use RuntimeException;
+
 class WebSocketServer
 {
     private ?resource $socket = null;
@@ -33,7 +35,7 @@ class WebSocketServer
         );
 
         if (! $this->socket) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to bind WebSocket server: {$errstr} ({$errno})",
             );
         }
@@ -147,6 +149,7 @@ class WebSocketServer
         foreach ($this->clients as $id => $client) {
             if (! is_resource($client)) {
                 unset($this->clients[$id]);
+
                 continue;
             }
 
@@ -230,6 +233,7 @@ class WebSocketServer
         foreach ($this->clients as $id => $client) {
             if (! is_resource($client)) {
                 $disconnected[] = $id;
+
                 continue;
             }
 

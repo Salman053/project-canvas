@@ -103,8 +103,10 @@ class CodebaseScanner
                     $relationships = $nodeA->getMetadata('relationships', []);
                     foreach ($relationships as $rel) {
                         $relClass = $rel['method'] ?? '';
+
                         if ($relClass && class_exists($relClass)) {
                             $targetId = 'model_'.str_replace('\\', '_', $relClass);
+
                             if ($this->graph->getNode($targetId)) {
                                 $edge = new Edge(
                                     id: 'edge_rel_'.$nodeA->getId().'_'.$targetId,

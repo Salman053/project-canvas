@@ -5,9 +5,9 @@ namespace Workbench\App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Workbench\App\Models\Post;
-use Workbench\App\Jobs\ProcessPost;
 use Workbench\App\Events\PostCreated;
+use Workbench\App\Jobs\ProcessPost;
+use Workbench\App\Models\Post;
 
 class PostController extends Controller
 {

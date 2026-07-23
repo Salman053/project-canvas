@@ -27,6 +27,7 @@ class ControllerScanner
                 }
 
                 $contents = file_get_contents($file->getPathname());
+
                 if (! $contents) {
                     continue;
                 }
@@ -112,6 +113,7 @@ class ControllerScanner
 
             foreach ($params as $param) {
                 $param = trim($param);
+
                 if (preg_match('/(\w+)\s+\$(\w+)/', $param, $pm)) {
                     $injections[] = [
                         'type' => $pm[1],

@@ -32,6 +32,7 @@ class ComplexityAnalyzer
     public function getCyclomaticComplexity(Node $node): int
     {
         $source = $node->getSourceCode();
+
         if ($source === null) {
             return 1;
         }
@@ -58,6 +59,7 @@ class ComplexityAnalyzer
                 case T_LOGICAL_AND:
                 case T_LOGICAL_OR:
                     $complexity++;
+
                     break;
             }
         }
