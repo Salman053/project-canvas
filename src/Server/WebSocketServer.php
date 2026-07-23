@@ -123,7 +123,7 @@ class WebSocketServer
         }
     }
 
-    private function performHandshake(string $header, $client): bool
+    private function performHandshake(string $header, mixed $client): bool
     {
         if (! preg_match('/Sec-WebSocket-Key:\s(.+)\r\n/', $header, $matches)) {
             return false;
@@ -206,7 +206,7 @@ class WebSocketServer
         return $payload;
     }
 
-    private function processMessage(string $message, $client): void
+    private function processMessage(string $message, mixed $client): void
     {
         $data = json_decode($message, true);
 
@@ -249,7 +249,7 @@ class WebSocketServer
         }
     }
 
-    private function sendFrame($client, string $data): void
+    private function sendFrame(mixed $client, string $data): void
     {
         if (! is_resource($client)) {
             return;

@@ -76,7 +76,7 @@ class CanvasApiController extends Controller
             'sourceCode' => $node->getSourceCode(),
             'dependencies' => $deps,
             'edges' => array_map(
-                fn ($e) => $e->toArray(),
+                fn (Edge $e) => $e->toArray(),
                 $graph->getEdgesForNode($id),
             ),
         ]);
@@ -90,7 +90,7 @@ class CanvasApiController extends Controller
         $results = $this->graphService->searchNodes($graph, $request->input('q'));
 
         return response()->json([
-            'results' => array_map(fn ($n) => $n->toArray(), $results),
+            'results' => array_map(fn (Node $n) => $n->toArray(), $results),
             'total' => count($results),
         ]);
     }
@@ -121,7 +121,7 @@ class CanvasApiController extends Controller
 
         return response()->json([
             'type' => $type,
-            'nodes' => array_map(fn ($n) => $n->toArray(), $filtered),
+            'nodes' => array_map(fn (Node $n) => $n->toArray(), $filtered),
             'total' => count($filtered),
         ]);
     }

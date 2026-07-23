@@ -107,7 +107,7 @@ class Node
             return 1.0;
         }
 
-        $passed = count(array_filter($this->testResults, fn ($r) => $r['passed']));
+        $passed = count(array_filter($this->testResults, fn (array $r) => $r['passed']));
 
         return $passed / count($this->testResults);
     }

@@ -99,7 +99,7 @@ class HealthService
             }
         }
 
-        usort($godClasses, fn ($a, $b) => $b['godScore'] <=> $a['godScore']);
+        usort($godClasses, fn (array $a, array $b) => $b['godScore'] <=> $a['godScore']);
 
         return $godClasses;
     }
