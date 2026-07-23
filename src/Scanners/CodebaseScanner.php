@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Scanners;
+namespace Salman053\Canvas\Scanners;
 
-use VendorName\Canvas\Data\ArchitectureGraph;
-use VendorName\Canvas\Data\Edge;
+use Salman053\Canvas\Data\ArchitectureGraph;
+use Salman053\Canvas\Data\Edge;
 
 class CodebaseScanner
 {

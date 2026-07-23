@@ -25,7 +25,7 @@ Laravel Canvas scans your entire Laravel codebase, identifies all key architectu
 
 ```bash
 composer require vendor-name/canvas
-php artisan vendor:publish --provider="VendorName\Canvas\CanvasServiceProvider"
+php artisan vendor:publish --provider="Salman053\Canvas\CanvasServiceProvider"
 ```
 
 ## Quick Start

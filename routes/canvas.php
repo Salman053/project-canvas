@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use VendorName\Canvas\Http\Controllers\CanvasApiController;
+use Salman053\Canvas\Http\Controllers\CanvasApiController;
 
 Route::prefix('api/canvas')->group(function () {
     Route::get('/graph', [CanvasApiController::class, 'graph']);

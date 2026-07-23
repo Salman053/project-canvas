@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Scanners;
+namespace Salman053\Canvas\Scanners;
 
 use Illuminate\Support\Facades\File;
-use VendorName\Canvas\Data\Node;
+use Salman053\Canvas\Data\Node;
 
 class PolicyScanner
 {

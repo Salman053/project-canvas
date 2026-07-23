@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas;
+namespace Salman053\Canvas;
 
 use Illuminate\Support\ServiceProvider;
-use VendorName\Canvas\Console\Commands\CanvasScanCommand;
-use VendorName\Canvas\Console\Commands\CanvasServeCommand;
+use Salman053\Canvas\Console\Commands\CanvasScanCommand;
+use Salman053\Canvas\Console\Commands\CanvasServeCommand;
 
 class CanvasServiceProvider extends ServiceProvider
 {

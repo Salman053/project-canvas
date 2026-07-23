@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Scanners;
+namespace Salman053\Canvas\Scanners;
 
 class GitAnalyzer
 {

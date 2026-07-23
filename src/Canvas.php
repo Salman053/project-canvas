@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas;
+namespace Salman053\Canvas;
 
-use VendorName\Canvas\Data\ArchitectureGraph;
-use VendorName\Canvas\Scanners\CodebaseScanner;
-use VendorName\Canvas\Services\GraphService;
+use Salman053\Canvas\Data\ArchitectureGraph;
+use Salman053\Canvas\Scanners\CodebaseScanner;
+use Salman053\Canvas\Services\GraphService;
 
 class Canvas
 {

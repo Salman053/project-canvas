@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Http\Controllers;
+namespace Salman053\Canvas\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use VendorName\Canvas\Data\ArchitectureGraph;
-use VendorName\Canvas\Data\Edge;
-use VendorName\Canvas\Data\Node;
-use VendorName\Canvas\Scanners\CodebaseScanner;
-use VendorName\Canvas\Scanners\GitAnalyzer;
-use VendorName\Canvas\Services\GraphService;
-use VendorName\Canvas\Services\HealthService;
+use Salman053\Canvas\Data\ArchitectureGraph;
+use Salman053\Canvas\Data\Edge;
+use Salman053\Canvas\Data\Node;
+use Salman053\Canvas\Scanners\CodebaseScanner;
+use Salman053\Canvas\Scanners\GitAnalyzer;
+use Salman053\Canvas\Services\GraphService;
+use Salman053\Canvas\Services\HealthService;
 
 class CanvasApiController extends Controller
 {

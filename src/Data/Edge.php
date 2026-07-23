@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Data;
+namespace Salman053\Canvas\Data;
 
 class Edge
 {

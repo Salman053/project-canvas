@@ -1,21 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "vendor-name/canvas",
+    "name": "salman053/project-canvas",
     "description": "An immersive 3D visualization tool for Laravel applications that maps architecture, dependencies, and test coverage in real-time.",
     "keywords": [
-        "vendor-name",
+        "salman053",
         "laravel",
         "canvas",
         "visualization",
         "architecture",
         "3d"
     ],
-    "homepage": "https://github.com/vendor-name/canvas",
+    "homepage": "https://github.com/Salman053/project-canvas",
     "license": "MIT",
     "authors": [
         {
-            "name": "Author Name",
-            "email": "author@example.com",
+            "name": "Muhammad Salman Khan",
+            "email": "salmankhanm859@gmail.com",
             "role": "Developer"
         }
     ],
@@ -42,12 +42,12 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Canvas\\": "src/"
+            "Salman053\\Canvas\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Canvas\\Tests\\": "tests/",
+            "Salman053\\Canvas\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/",
@@ -104,10 +104,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Canvas\\CanvasServiceProvider"
+                "Salman053\\Canvas\\CanvasServiceProvider"
             ],
             "aliases": {
-                "Canvas": "VendorName\\Canvas\\Facades\\Canvas"
+                "Canvas": "Salman053\\Canvas\\Facades\\Canvas"
             }
         }
     },

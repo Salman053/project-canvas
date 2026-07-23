@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Scanners;
+namespace Salman053\Canvas\Scanners;
 
 use Closure;
 use Illuminate\Support\Facades\Route;
+use Salman053\Canvas\Data\Edge;
+use Salman053\Canvas\Data\Node;
 use Throwable;
-use VendorName\Canvas\Data\Edge;
-use VendorName\Canvas\Data\Node;
 
 class RouteScanner
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Server;
+namespace Salman053\Canvas\Server;
 
 use RuntimeException;
 

@@ -1,73 +1,72 @@
-# Laravel Package Skeleton
+# Laravel Canvas
 
-A starter template for building beautiful Laravel packages.
+> An immersive 3D visualization tool that transforms your Laravel application's architecture into an interactive, living graph.
 
-## Introduction
+[![PHP](https://img.shields.io/badge/PHP-8.3-%23777BB4?logo=php)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-red?logo=laravel)](https://laravel.com)
+[![Packagist](https://img.shields.io/packagist/v/salman053/project-canvas)](https://packagist.org/packages/salman053/project-canvas)
+[![License](https://img.shields.io/github/license/Salman053/project-canvas)](https://github.com/Salman053/project-canvas/blob/main/LICENSE)
 
-This skeleton provides everything you need to start building a Laravel package. It comes pre-configured with a service provider, testing via Pest, static analysis via Larastan, code formatting via Pint, and a workbench application for end-to-end development — all wired up and ready to go.
+## Overview
 
-An interactive configuration script personalizes the skeleton for your package during `composer install`, setting up your namespace, service provider, and only the features you need.
+Laravel Canvas scans your entire Laravel codebase, identifies all key architectural components (Models, Controllers, Jobs, Listeners, Policies, Middleware, Service Providers, and Routes), maps their interconnections, and renders everything as a stunning 3D universe powered by THREE.js.
 
-## Getting Started
+## Features
 
-Press the **Use this template** button at the top of this repository to create your package, or clone it directly:
+- **3D Architecture Visualization** — Interactive WebGL-powered 3D graph with orbital controls
+- **Auto-Scanning** — Automatically discovers models, controllers, jobs, and more
+- **Dependency Mapping** — Visualizes constructor injections, use statements, and relationships
+- **Health Indicators** — Color-coded nodes: green (healthy), yellow (moderate), red (needs refactoring)
+- **Real-Time Test Mode** — Watch tests animate the graph with green/red pulses
+- **Search & Filter** — Instant node lookup with autocomplete, filter by component type
+- **Heat Map** — Git commit frequency visualized on the graph
+- **Snapshots** — Capture and compare architecture states over time
+- **Export** — Generate shareable static JSON snapshots
 
-```bash
-git clone https://github.com/laravel/package-skeleton.git my-package
-cd my-package
-```
-
-Then, install your dependencies. The interactive configuration script will run automatically:
-
-```bash
-composer install
-```
-
-If you prefer to configure manually, install without scripts and run the configuration separately:
-
-```bash
-composer install --no-scripts
-php configure.php
-```
-
-Once configured, verify everything is working:
+## Installation
 
 ```bash
-composer test
+composer require salman053/project-canvas
+php artisan vendor:publish --provider="Salman053\Canvas\CanvasServiceProvider"
 ```
 
-You may also boot the included workbench application to test your package end-to-end:
+## Quick Start
+
+Scan your codebase:
 
 ```bash
-composer serve
+php artisan canvas:scan
 ```
 
-The workbench app will be available at `http://localhost:8000`.
-
-## Non-Interactive Configuration
-
-The configuration script supports non-interactive mode for CI or scripted setups. Pass `--no-interaction` along with any metadata options you'd like to prefill:
+Launch the 3D visualization:
 
 ```bash
-php configure.php --no-interaction --config --routes
+php artisan canvas:serve
 ```
 
-Non-interactive mode also activates automatically when the `COMPOSER_NO_INTERACTION=1` environment variable is set, when an AI agent is detected, or when standard input is not an interactive terminal.
+Open your browser to `http://localhost:8080/canvas` and run your tests in another terminal to see the graph come alive.
 
-Omitting feature flags includes every package feature; passing specific flags includes only those features. Tools work the same way: omitting tool flags such as `--dependabot` or `--changelog` includes every tool, while passing specific flags includes only those tools.
+## Commands
 
-Since the default package description is empty, passing `--package-description` is recommended so the generated `composer.json` is ready to publish.
+- `php artisan canvas:scan` — Scan the codebase and display architecture statistics
+- `php artisan canvas:serve` — Start the 3D visualization and WebSocket server
 
-Non-interactive runs print a single line of JSON describing the result, including the resolved metadata, selected features and tools, and any manual follow-up steps. Invalid metadata options fail with a JSON error before any files are changed.
+## API
 
-During configuration, `README_PACKAGE.md` and `AGENTS_PACKAGE.md` are customized and moved to `README.md` and `AGENTS.md`, replacing the skeleton files. The script also links `CLAUDE.md` to `AGENTS.md` and `.claude` to `.agents` so both agent formats share the same guidance.
+Canvas provides a REST API at `/api/canvas/` for programmatic access to architecture data.
 
-## After Setup
+## Dashboard
 
-A few GitHub settings need your attention after creating your package repository:
+A dashboard with aggregate statistics is available at `/canvas/dashboard`.
 
-- Review Dependabot pull requests before merging — this skeleton does not include an automatic merge workflow.
-- Create release-note labels: `breaking`, `enhancement`, `bug`, `documentation`, `dependencies`, `maintenance`, `skip-changelog`, and `duplicate`.
-- Review branch protection for `main` — changelog automation requires GitHub Actions to commit to `CHANGELOG.md` after a release.
+## Configuration
 
-No additional repository secrets are required; the included workflows use GitHub's built-in `GITHUB_TOKEN`.
+Publish the config file to customize scanning paths, visualization settings, and health thresholds.
+
+```bash
+php artisan vendor:publish --tag=canvas-config
+```
+
+## License
+
+MIT

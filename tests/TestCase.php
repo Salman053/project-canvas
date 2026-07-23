@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Tests;
+namespace Salman053\Canvas\Tests;
 
 use Orchestra\Testbench\TestCase as Orchestra;
-use VendorName\Canvas\CanvasServiceProvider;
+use Salman053\Canvas\CanvasServiceProvider;
 
 abstract class TestCase extends Orchestra
 {

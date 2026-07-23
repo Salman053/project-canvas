@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Services;
+namespace Salman053\Canvas\Services;
 
-use VendorName\Canvas\Data\Node;
+use Salman053\Canvas\Data\Node;
 
 class ComplexityAnalyzer
 {

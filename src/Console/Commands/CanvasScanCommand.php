@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace VendorName\Canvas\Console\Commands;
+namespace Salman053\Canvas\Console\Commands;
 
 use Illuminate\Console\Command;
-use VendorName\Canvas\Scanners\CodebaseScanner;
-use VendorName\Canvas\Services\GraphService;
+use Salman053\Canvas\Scanners\CodebaseScanner;
+use Salman053\Canvas\Services\GraphService;
 
 class CanvasScanCommand extends Command
 {
