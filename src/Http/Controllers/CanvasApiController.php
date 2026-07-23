@@ -169,6 +169,178 @@ class CanvasApiController extends Controller
         ]);
     }
 
+    public function analytics(): JsonResponse
+    {
+        $graph = $this->loadGraph();
+        $stats = $this->graphService->getDashboardStats($graph);
+        $health = $this->healthService->calculateGraphHealth($graph);
+        $godClasses = $this->healthService->identifyGodClasses($graph);
+        $nodes = $graph->getNodes();
+        $edges = $graph->getEdges();
+
+        $complexityByType = [];
+        $healthByType = [];
+        foreach ($nodes as $node) {
+            $type = $node->getType();
+            $complexityByType[$type][] = $node->getComplexityScore();
+            $healthByType[$type][] = $node->getHealthScore();
+        }
+
+        $avgComplexityByType = [];
+        $avgHealthByType = [];
+        foreach ($complexityByType as $type => $scores) {
+            $avgComplexityByType[$type] = round(array_sum($scores) / count($scores), 2);
+            $avgHealthByType[$type] = round(array_sum($healthByType[$type]) / count($healthByType[$type]), 2);
+        }
+
+        $routeNodes = $graph->getNodesByType('route');
+        $highDepNodes = array_filter($nodes, fn (Node $n) => count($n->getDependencies()) > 3);
+
+        $suggestions = [];
+        foreach ($godClasses as $gc) {
+            $node = $gc['node'];
+            $suggestions[] = [
+                'type' => 'warning',
+                'icon' => 'god-class',
+                'title' => 'God Class Detected',
+                'message' => "{$node['label']} has high complexity ({$gc['complexity']}) with {$gc['methodCount']} methods and {$gc['dependencyCount']} dependencies. Consider splitting into smaller services.",
+                'component' => $node['label'],
+                'severity' => 'high',
+            ];
+        }
+
+        $unhealthy = array_filter($nodes, fn (Node $n) => $n->getHealthScore() < 0.5);
+        foreach ($unhealthy as $node) {
+            $suggestions[] = [
+                'type' => 'danger',
+                'icon' => 'health',
+                'title' => 'Low Health Score',
+                'message' => "{$node->getLabel()} has a health score of ".round($node->getHealthScore() * 100).'%. Review code quality, add tests, and reduce dependencies.',
+                'component' => $node->getLabel(),
+                'severity' => 'high',
+            ];
+        }
+
+        $highComplexity = array_filter($nodes, fn (Node $n) => $n->getComplexityScore() > 8);
+        foreach ($highComplexity as $node) {
+            $suggestions[] = [
+                'type' => 'warning',
+                'icon' => 'complexity',
+                'title' => 'High Complexity',
+                'message' => "{$node->getLabel()} has complexity {$node->getComplexityScore()}. Break down complex methods and reduce nesting.",
+                'component' => $node->getLabel(),
+                'severity' => 'medium',
+            ];
+        }
+
+        $models = $graph->getNodesByType('model');
+        foreach ($models as $model) {
+            $rels = $model->getMetadata('relationships', []);
+            if (count($rels) > 5) {
+                $suggestions[] = [
+                    'type' => 'info',
+                    'icon' => 'model',
+                    'title' => 'Complex Model',
+                    'message' => "{$model->getLabel()} has ".count($rels).' relationships. Consider using Single Table Inheritance or splitting into related models.',
+                    'component' => $model->getLabel(),
+                    'severity' => 'low',
+                ];
+            }
+        }
+
+        $controllerNodes = $graph->getNodesByType('controller');
+        foreach ($controllerNodes as $ctrl) {
+            $depCount = count($ctrl->getDependencies());
+            if ($depCount > 5) {
+                $suggestions[] = [
+                    'type' => 'info',
+                    'icon' => 'dependency',
+                    'title' => 'Highly Coupled Controller',
+                    'message' => "{$ctrl->getLabel()} has {$depCount} dependencies. Consider using action classes or service pattern.",
+                    'component' => $ctrl->getLabel(),
+                    'severity' => 'medium',
+                ];
+            }
+        }
+
+        if (count($nodes) > 0 && count($edges) === 0) {
+            $suggestions[] = [
+                'type' => 'info',
+                'icon' => 'graph',
+                'title' => 'No Relationships Found',
+                'message' => 'No edges were detected between components. Ensure your code uses proper dependency injection and type hints.',
+                'component' => 'global',
+                'severity' => 'low',
+            ];
+        }
+
+        $hasTests = array_filter($nodes, fn (Node $n) => count($n->getTestResults()) > 0);
+        if (count($hasTests) === 0 && count($nodes) > 0) {
+            $suggestions[] = [
+                'type' => 'warning',
+                'icon' => 'test',
+                'title' => 'No Test Coverage',
+                'message' => 'No tests detected. Consider adding tests to improve code reliability and health scores.',
+                'component' => 'global',
+                'severity' => 'high',
+            ];
+        }
+
+        usort($suggestions, fn ($a, $b) => ['high' => 3, 'medium' => 2, 'low' => 1][$b['severity']] <=> ['high' => 3, 'medium' => 2, 'low' => 1][$a['severity']]);
+
+        $edgeTypes = [];
+        foreach ($edges as $edge) {
+            $t = $edge->getType();
+            $edgeTypes[$t] = ($edgeTypes[$t] ?? 0) + 1;
+        }
+
+        $nodeTypes = [];
+        foreach ($nodes as $node) {
+            $t = $node->getType();
+            $nodeTypes[$t] = ($nodeTypes[$t] ?? 0) + 1;
+        }
+
+        return response()->json([
+            'summary' => [
+                'totalNodes' => $stats['totalNodes'],
+                'totalEdges' => $stats['totalEdges'],
+                'averageDependencies' => $stats['averageDependencies'],
+                'averageHealth' => $stats['averageHealth'],
+                'healthyCount' => $health['healthyCount'],
+                'moderateCount' => $health['moderateCount'],
+                'unhealthyCount' => $health['unhealthyCount'],
+                'godClassCount' => count($godClasses),
+                'totalTests' => array_sum(array_map(fn (Node $n) => count($n->getTestResults()), $nodes)),
+                'routeCount' => count($routeNodes),
+                'suggestionCount' => count($suggestions),
+            ],
+            'architecture' => $graph->toArray(),
+            'quality' => [
+                'averageComplexity' => count($nodes) > 0 ? round(array_sum(array_map(fn (Node $n) => $n->getComplexityScore(), $nodes)) / count($nodes), 2) : 0,
+                'averageHealthByType' => $avgHealthByType,
+                'averageComplexityByType' => $avgComplexityByType,
+                'godClasses' => $godClasses,
+                'highComplexityCount' => count($highComplexity),
+                'highDependencyCount' => count($highDepNodes),
+            ],
+            'performance' => [
+                'nodeTypeCounts' => $nodeTypes,
+                'edgeTypeCounts' => $edgeTypes,
+                'totalRoutes' => count($routeNodes),
+            ],
+            'coverage' => [
+                'overall' => count($nodes) > 0 ? round(count($hasTests) / count($nodes) * 100, 1) : 0,
+                'testedCount' => count($hasTests),
+                'untestedCount' => count($nodes) - count($hasTests),
+            ],
+            'database' => [
+                'modelCount' => count($models),
+                'totalRelationships' => array_sum(array_map(fn (Node $m) => count($m->getMetadata('relationships', [])), $models)),
+            ],
+            'suggestions' => $suggestions,
+        ]);
+    }
+
     private function hydrateGraph(array $data): ArchitectureGraph
     {
         $graph = new ArchitectureGraph;

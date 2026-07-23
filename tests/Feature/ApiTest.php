@@ -11,7 +11,7 @@ it('serves the canvas view page', function () {
 it('serves the dashboard view page', function () {
     $response = $this->get('/canvas/dashboard');
     $response->assertStatus(200);
-    $response->assertSee('Canvas Dashboard');
+    $response->assertSee('Canvas Analytics');
 });
 
 it('returns graph data from the api', function () {

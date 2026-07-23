@@ -16,6 +16,7 @@ Route::prefix('api/canvas')->group(function () {
     Route::post('/snapshot', [CanvasApiController::class, 'snapshot']);
     Route::get('/snapshots', [CanvasApiController::class, 'snapshotList']);
     Route::get('/export', [CanvasApiController::class, 'export']);
+    Route::get('/analytics', [CanvasApiController::class, 'analytics']);
 });
 
 Route::get('/canvas', function () {
