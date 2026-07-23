@@ -51,6 +51,7 @@ class ListenerScanner
                     filePath: $file->getPathname(),
                 );
 
+                $node->setMetadata('methods', $this->extractMethods($contents));
                 $node->setMetadata('handles', $this->extractHandledEvents($contents));
                 $node->setMetadata('queued', str_contains($contents, 'ShouldQueue'));
 
@@ -80,5 +81,22 @@ class ListenerScanner
         }
 
         return $events;
+    }
+
+    private function extractMethods(string $contents): array
+    {
+        $methods = [];
+
+        preg_match_all('/(public\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*\??\s*(\w+))?\s*\{/', $contents, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            if (in_array($match[2], ['__construct', '__invoke', '__call', '__callStatic'])) {
+                continue;
+            }
+
+            $methods[] = ['name' => $match[2], 'params' => array_map('trim', explode(',', $match[3])), 'returnType' => $match[4] ?? null];
+        }
+
+        return $methods;
     }
 }

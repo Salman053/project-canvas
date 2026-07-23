@@ -52,6 +52,7 @@ class JobScanner
                     filePath: $file->getPathname(),
                 );
 
+                $node->setMetadata('methods', $this->extractMethods($contents));
                 $node->setMetadata('queue', $this->extractQueue($contents));
                 $node->setMetadata('maxAttempts', $this->extractTries($contents));
                 $node->setMetadata('properties', $this->extractProperties($contents));
@@ -79,6 +80,23 @@ class JobScanner
         }
 
         return 1;
+    }
+
+    private function extractMethods(string $contents): array
+    {
+        $methods = [];
+
+        preg_match_all('/(public\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*\??\s*(\w+))?\s*\{/', $contents, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            if (in_array($match[2], ['__construct', '__invoke', '__call', '__callStatic'])) {
+                continue;
+            }
+
+            $methods[] = ['name' => $match[2], 'params' => array_map('trim', explode(',', $match[3])), 'returnType' => $match[4] ?? null];
+        }
+
+        return $methods;
     }
 
     private function extractProperties(string $contents): array

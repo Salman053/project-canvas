@@ -51,6 +51,7 @@ class MiddlewareScanner
                     filePath: $file->getPathname(),
                 );
 
+                $node->setMetadata('methods', $this->extractMethods($contents));
                 $node->setMetadata('hasHandle', str_contains($contents, 'function handle('));
                 $node->setMetadata('aliases', $this->extractAliases($contents));
 
@@ -74,5 +75,22 @@ class MiddlewareScanner
         }
 
         return $aliases;
+    }
+
+    private function extractMethods(string $contents): array
+    {
+        $methods = [];
+
+        preg_match_all('/(public\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*\??\s*(\w+))?\s*\{/', $contents, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            if (in_array($match[2], ['__construct', '__invoke', '__call', '__callStatic'])) {
+                continue;
+            }
+
+            $methods[] = ['name' => $match[2], 'params' => array_map('trim', explode(',', $match[3])), 'returnType' => $match[4] ?? null];
+        }
+
+        return $methods;
     }
 }

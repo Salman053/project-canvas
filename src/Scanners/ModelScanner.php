@@ -57,6 +57,7 @@ class ModelScanner
                 $node->setMetadata('table', $this->guessTableName($className, $contents));
                 $node->setMetadata('relationships', $this->extractRelationships($contents));
                 $node->setMetadata('casts', $this->extractCasts($contents));
+                $node->setMetadata('methods', $this->extractMethods($contents));
                 $node->setMetadata('fillable', $this->extractFillable($contents));
 
                 $models[$nodeId] = $node;
@@ -110,6 +111,34 @@ class ModelScanner
         }
 
         return $casts;
+    }
+
+    private function extractMethods(string $contents): array
+    {
+        $methods = [];
+
+        preg_match_all(
+            '/(public\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*\??\s*(\w+))?\s*\{/',
+            $contents,
+            $matches,
+            PREG_SET_ORDER,
+        );
+
+        foreach ($matches as $match) {
+            $name = $match[2];
+
+            if (in_array($name, ['__construct', '__invoke', '__call', '__callStatic'])) {
+                continue;
+            }
+
+            $methods[] = [
+                'name' => $name,
+                'params' => array_map('trim', explode(',', $match[3])),
+                'returnType' => $match[4] ?? null,
+            ];
+        }
+
+        return $methods;
     }
 
     private function extractFillable(string $contents): array

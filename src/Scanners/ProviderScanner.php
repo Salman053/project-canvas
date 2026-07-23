@@ -52,6 +52,7 @@ class ProviderScanner
                     filePath: $file->getPathname(),
                 );
 
+                $node->setMetadata('methods', $this->extractMethods($contents));
                 $node->setMetadata('bindings', $this->extractBindings($contents));
                 $node->setMetadata('hasRegister', str_contains($contents, 'function register('));
                 $node->setMetadata('hasBoot', str_contains($contents, 'function boot('));
@@ -78,5 +79,22 @@ class ProviderScanner
         }
 
         return $bindings;
+    }
+
+    private function extractMethods(string $contents): array
+    {
+        $methods = [];
+
+        preg_match_all('/(public\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*\??\s*(\w+))?\s*\{/', $contents, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            if (in_array($match[2], ['__construct', '__invoke', '__call', '__callStatic'])) {
+                continue;
+            }
+
+            $methods[] = ['name' => $match[2], 'params' => array_map('trim', explode(',', $match[3])), 'returnType' => $match[4] ?? null];
+        }
+
+        return $methods;
     }
 }

@@ -67,10 +67,11 @@ html, body {
 }
 
 #dashboard-app {
-    width: 100%; min-height: 100vh;
+    width: 100%; height: 100vh;
     background: var(--bg-primary);
     display: flex; flex-direction: column;
     transition: background 0.3s ease;
+    overflow: hidden;
 }
 
 #toolbar {
