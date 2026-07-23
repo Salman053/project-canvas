@@ -236,6 +236,7 @@ class CanvasApiController extends Controller
         $models = $graph->getNodesByType('model');
         foreach ($models as $model) {
             $rels = $model->getMetadata('relationships', []);
+
             if (count($rels) > 5) {
                 $suggestions[] = [
                     'type' => 'info',
@@ -251,6 +252,7 @@ class CanvasApiController extends Controller
         $controllerNodes = $graph->getNodesByType('controller');
         foreach ($controllerNodes as $ctrl) {
             $depCount = count($ctrl->getDependencies());
+
             if ($depCount > 5) {
                 $suggestions[] = [
                     'type' => 'info',
@@ -275,6 +277,7 @@ class CanvasApiController extends Controller
         }
 
         $hasTests = array_filter($nodes, fn (Node $n) => count($n->getTestResults()) > 0);
+
         if (count($hasTests) === 0 && count($nodes) > 0) {
             $suggestions[] = [
                 'type' => 'warning',
@@ -289,6 +292,7 @@ class CanvasApiController extends Controller
         /** @var array{type: string, icon: string, title: string, message: string, component: string, severity: string} $a, $b */
         usort($suggestions, function (array $a, array $b): int {
             $order = ['high' => 3, 'medium' => 2, 'low' => 1];
+
             return ($order[$b['severity']] ?? 0) <=> ($order[$a['severity']] ?? 0);
         });
 
