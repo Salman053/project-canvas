@@ -13,11 +13,10 @@ use Salman053\Canvas\Services\GraphService;
 class CanvasServeCommand extends Command
 {
     protected $signature = 'canvas:serve
-        {--host=127.0.0.1 : The host to bind the visualization server to}
-        {--port=8081 : The port to bind the WebSocket server to}
-        {--http-port=8080 : The port to bind the HTTP server to}';
+        {--host=127.0.0.1 : The host to bind the WebSocket server to}
+        {--port=8081 : The port to bind the WebSocket server to}';
 
-    protected $description = 'Start the Laravel Canvas 3D visualization server';
+    protected $description = 'Start the Laravel Canvas visualization WebSocket server';
 
     private ?WebSocketServer $wsServer = null;
 
@@ -25,7 +24,7 @@ class CanvasServeCommand extends Command
     {
         $host = $this->option('host');
         $port = (int) $this->option('port');
-        $httpPort = (int) $this->option('http-port');
+        $appUrl = rtrim(config('app.url'), '/');
 
         $this->components->info('Starting Laravel Canvas...');
 
@@ -49,7 +48,7 @@ class CanvasServeCommand extends Command
         }
 
         $this->components->twoColumnDetail('WebSocket', "ws://{$host}:{$port}");
-        $this->components->twoColumnDetail('Dashboard', "http://{$host}:{$httpPort}/canvas");
+        $this->components->twoColumnDetail('Dashboard', "{$appUrl}/canvas");
         $this->newLine();
 
         $this->components->info(
@@ -58,9 +57,9 @@ class CanvasServeCommand extends Command
 
         $this->newLine();
         $this->line('  <options=bold>How to use:</>');
-        $this->line('  - Open <href=http://localhost:8080/canvas>http://localhost:8080/canvas</>');
+        $this->line("  - Open <href={$appUrl}/canvas>{$appUrl}/canvas</>");
         $this->line('  - Run <options=bold>phpunit</> or <options=bold>pest</> in another terminal');
-        $this->line('  - Watch the graph come alive with test results');
+        $this->line('  - Make sure <options=bold>php artisan serve</> is running in another terminal to serve the dashboard');
         $this->line('');
 
         $graphData = $graph->toArray();
