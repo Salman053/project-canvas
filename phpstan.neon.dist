@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - config
+        - routes
+        - database
+        - tests
+    excludePaths:
+        - vendor
+        - workbench
+    tmpDir: .phpstan
+    scanFiles:
+        - vendor/laravel/framework/src/Illuminate/Support/helpers.php
