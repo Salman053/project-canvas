@@ -21,7 +21,7 @@ Laravel Canvas scans your entire Laravel codebase, identifies all key architectu
 - **Search & Filter** — Instant node lookup with autocomplete, filter by component type
 - **Heat Map** — Git commit frequency visualized on the graph
 - **Snapshots** — Capture and compare architecture states over time
-- **Export** — Generate shareable static JSON snapshots
+- **Export** — Generate shareable static JSON snapshots 
 
 ## Installation
 
